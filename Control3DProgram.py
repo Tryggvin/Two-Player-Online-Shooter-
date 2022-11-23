@@ -128,13 +128,17 @@ class GraphicsProgram3D:
         # # self.hnit = [(10,x) for x in range(20)]
         # #box array
         # self.boxes = [collision_object(box[0]-14.5,box[1]-9.5,2,2)for box in self.hnit]
-        self.collision_obj =[collision_object(-7.5,-0.3,-4.5,1,2,1),collision_object(-5.5,-0.3,5.5,1,2,1),
+        self.collision_obj =[
+             collision_object(0,-0.3,5.5,1,10,1.5), collision_object(0,-0.3,-5.5,1,10,1.5),
+        collision_object(0,0.6,0,1,20,0.3),
+            collision_object(-7.5,-0.3,-4.5,1,2,1),collision_object(-5.5,-0.3,5.5,1,2,1),
         collision_object(-9.5,-0.3,0.5,1,2,1),collision_object(-1.5,-0.3,-5.5,1,2,1),
         collision_object(-2.5,-0.3,7.5,1,2,1),collision_object(3.5,-0.3,-4.5,1,2,1),
         collision_object(4.5,-0.3,5.5,1,2,1),collision_object(3.5,-0.3,0.5,1,2,1),
         collision_object(6.5,-0.3,5.5,1,2,1),collision_object(10.5,-0.3,-6.5,1,2,1),
         collision_object(0,-0.3,-10,30,0.1,1.5),collision_object(0,-0.3,10,30,0.1,1.5),
-        collision_object(-15,-0.3,0,0.1,30,1.5),collision_object(15,-0.3,0,0.1,30,1.5)
+        collision_object(-15,-0.3,0,0.1,30,1.5),collision_object(15,-0.3,0,0.1,30,1.5),
+       collision_object(5,-0.3,0,0.1,0.1,0.5), collision_object(-5,-0.3,0,0.1,0.1,0.5)
         
         ]
 
@@ -393,36 +397,36 @@ class GraphicsProgram3D:
                 self.model_matrix.pop_matrix()
 
             #wall
-            self.model_matrix.load_identity()
-            self.model_matrix.push_matrix()
-                # tmp = collision_object(1)
-            self.model_matrix.add_translation(0,-.3,5.5)
-            self.model_matrix.add_scale(1,1.5,10)
-            self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(1,0,0)
-            self.player.draw(self.shader)
-            self.model_matrix.pop_matrix()
+            # self.model_matrix.load_identity()
+            # self.model_matrix.push_matrix()
+            #     # tmp = collision_object(1)
+            # self.model_matrix.add_translation(0,-.3,5.5)
+            # self.model_matrix.add_scale(1,1.5,10)
+            # self.shader.set_model_matrix(self.model_matrix.matrix)
+            # self.shader.set_solid_color(1,0,0)
+            # self.player.draw(self.shader)
+            # self.model_matrix.pop_matrix()
 
-            self.model_matrix.load_identity()
-            self.model_matrix.push_matrix()
-                # tmp = collision_object(1)
-            self.model_matrix.add_translation(0,-.3,-5.5)
-            self.model_matrix.add_scale(1,1.5,10)
-            self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(1,0,0)
-            self.player.draw(self.shader)
-            self.model_matrix.pop_matrix()
+            # self.model_matrix.load_identity()
+            # self.model_matrix.push_matrix()
+            #     # tmp = collision_object(1)
+            # self.model_matrix.add_translation(0,-.3,-5.5)
+            # self.model_matrix.add_scale(1,1.5,10)
+            # self.shader.set_model_matrix(self.model_matrix.matrix)
+            # self.shader.set_solid_color(1,0,0)
+            # self.player.draw(self.shader)
+            # self.model_matrix.pop_matrix()
 
 
-            self.model_matrix.load_identity()
-            self.model_matrix.push_matrix()
-                # tmp = collision_object(1)
-            self.model_matrix.add_translation(0,0.6,0)
-            self.model_matrix.add_scale(1,0.3,20)
-            self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(1,0,0)
-            self.player.draw(self.shader)
-            self.model_matrix.pop_matrix()
+            # self.model_matrix.load_identity()
+            # self.model_matrix.push_matrix()
+            #     # tmp = collision_object(1)
+            # self.model_matrix.add_translation(0,0.6,0)
+            # self.model_matrix.add_scale(1,0.3,20)
+            # self.shader.set_model_matrix(self.model_matrix.matrix)
+            # self.shader.set_solid_color(1,0,0)
+            # self.player.draw(self.shader)
+            # self.model_matrix.pop_matrix()
 
             #door
             self.model_matrix.load_identity()
@@ -437,15 +441,15 @@ class GraphicsProgram3D:
 
 
             #buttons
-            self.model_matrix.load_identity()
-            self.model_matrix.push_matrix()
-                # tmp = collision_object(1)
-            self.model_matrix.add_translation(5,-0.3,0)
-            self.model_matrix.add_scale(0.1,0.5,0.1)
-            self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(0,0,1)
-            self.player.draw(self.shader)
-            self.model_matrix.pop_matrix()
+            # self.model_matrix.load_identity()
+            # self.model_matrix.push_matrix()
+            #     # tmp = collision_object(1)
+            # self.model_matrix.add_translation(5,-0.3,0)
+            # self.model_matrix.add_scale(0.1,0.5,0.1)
+            # self.shader.set_model_matrix(self.model_matrix.matrix)
+            # self.shader.set_solid_color(0,0,1)
+            # self.player.draw(self.shader)
+            # self.model_matrix.pop_matrix()
 
             self.model_matrix.load_identity()
             self.model_matrix.push_matrix()
@@ -457,17 +461,15 @@ class GraphicsProgram3D:
             self.player.draw(self.shader)
             self.model_matrix.pop_matrix()
             
-
-
-            self.model_matrix.load_identity()
-            self.model_matrix.push_matrix()
-                # tmp = collision_object(1)
-            self.model_matrix.add_translation(-5,-0.3,0)
-            self.model_matrix.add_scale(0.1,0.5,0.1)
-            self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(0,0,1)
-            self.player.draw(self.shader)
-            self.model_matrix.pop_matrix()
+            # self.model_matrix.load_identity()
+            # self.model_matrix.push_matrix()
+            #     # tmp = collision_object(1)
+            # self.model_matrix.add_translation(-5,-0.3,0)
+            # self.model_matrix.add_scale(0.1,0.5,0.1)
+            # self.shader.set_model_matrix(self.model_matrix.matrix)
+            # self.shader.set_solid_color(0,0,1)
+            # self.player.draw(self.shader)
+            # self.model_matrix.pop_matrix()
 
             self.model_matrix.load_identity()
             self.model_matrix.push_matrix()
