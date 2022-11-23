@@ -11,8 +11,8 @@ import sys
 import time
 from _thread import *
 import server
-from box import collision_object
-import random
+from collision_object import collision_object
+
 from Shaders import *
 from Matrices import *
 from maze import *
@@ -79,11 +79,15 @@ class GraphicsProgram3D:
         self.player2_bullet_alive = False
 
         # objects 
+        self.col = collision_object(1, -1, 1, 1)
         self.object_list = []
+        self.object_list.append(self.col)
         
         self.door = True
         self.clock = pygame.time.Clock()
         self.clock.tick()
+        self.player1_id = 0
+        self.speed = 1
 
         self.angle = 0
         self.player1_angle = 0
@@ -109,6 +113,7 @@ class GraphicsProgram3D:
         self.button_y_1 = -0.05
 
         self.button_y_2 = -0.05
+        self.L_shift_down = False
         
         self.white_background = False
 
@@ -127,29 +132,22 @@ class GraphicsProgram3D:
         self.boxes = [collision_object(box[0]-14.5,box[1]-9.5,1,1)for box in self.hnit]
 
             
-    def check_collision(self):
-        # collision box test
-        if (-0.4 > self.view_matrix.eye.z > -1.5)  and (0.5 > self.view_matrix.eye.x):
-            if (0.4 < self.view_matrix.eye.x):
-                self.view_matrix.eye.x = 0.4
-        if (-0.4 > self.view_matrix.eye.z > -1.5)  and (1.5 < self.view_matrix.eye.x):
-            if (1.6 > self.view_matrix.eye.x):
-                self.view_matrix.eye.x = 1.6
 
-        if (-0.5 < self.view_matrix.eye.z)  and (0.4 < self.view_matrix.eye.x < 1.6):
-            if (-0.4 > self.view_matrix.eye.z):
-                self.view_matrix.eye.z = -0.4
-        #if (-0.4 > self.view_matrix.eye.z > -1.5)  and (0.4 < self.view_matrix.eye.x < 1.6):
-        #    if (1.6 > self.view_matrix.eye.x):
-        #        self.view_matrix.eye.x = 1.6y
-            #if (-0.4 > self.view_matrix.eye.z > -1.5)  and (0.4 < self.view_matrix.eye.x < 1.6):
-            
-            #    print("second check passed")
-                
-            #elif (-0.4 > self.view_matrix.eye.z > -1.5)  and (0.4 < self.view_matrix.eye.x < 1.6):
-            #    self.view_matrix.eye.z = -0.4
-            #elif (-0.4 > self.view_matrix.eye.z > -1.5)  and (0.4 < self.view_matrix.eye.x < 1.6):
-            #    self.view_matrix.eye.z = -0.4
+    def check_collision(self, item: collision_object):
+        # collision box test
+        if (item.z1+0.1 > self.view_matrix.eye.z > item.z2)  and (item.x1 > self.view_matrix.eye.x):
+            if (item.x1-0.1 < self.view_matrix.eye.x):
+                self.view_matrix.eye.x = item.x1-0.1
+        if (item.z1+0.1 > self.view_matrix.eye.z > item.z2)  and (item.x2 < self.view_matrix.eye.x):
+            if (item.x2+0.1 > self.view_matrix.eye.x):
+                self.view_matrix.eye.x = item.x2+0.1
+
+        if (item.z1 < self.view_matrix.eye.z)  and (item.x1-0.1 < self.view_matrix.eye.x < item.x2+0.1):
+            if (item.z1+0.1 > self.view_matrix.eye.z):
+                self.view_matrix.eye.z = item.z1+0.1
+        if (item.z2 > self.view_matrix.eye.z)  and (item.x1-0.1 < self.view_matrix.eye.x < item.x2+0.1):
+            if (item.z2-0.1 < self.view_matrix.eye.z):
+                self.view_matrix.eye.z = item.z2-0.1
             
 
     def update(self):
@@ -166,17 +164,25 @@ class GraphicsProgram3D:
             self.white_background = False
 
         # slide
+        if self.L_shift_down:
+            self.speed *= 1.01
+            print(self.speed)
+        else:
+            self.speed = 1
+        if self.speed > 4:
+            self.speed = 4
+
         if self.W_key_down:
-            self.view_matrix.slide(0,0,-1*delta_time)
+            self.view_matrix.slide(0,0,-self.speed*delta_time)
             #self.map_matrix.slide(0,0,-1*delta_time)
         if self.S_key_down:
-            self.view_matrix.slide(0,0,1*delta_time)
+            self.view_matrix.slide(0,0,self.speed*delta_time)
             #self.map_matrix.slide(0,0,1*delta_time)
         if self.A_key_down:
-            self.view_matrix.slide(-1*delta_time,0,0)
+            self.view_matrix.slide(-self.speed*delta_time,0,0)
             #self.map_matrix.slide(-1*delta_time,0,0)
         if self.D_key_down:
-            self.view_matrix.slide(1*delta_time,0,0)
+            self.view_matrix.slide(self.speed*delta_time,0,0)
             #self.map_matrix.slide(1*delta_time,0,0)
         # yaw
 
@@ -277,8 +283,9 @@ class GraphicsProgram3D:
             #self.player1_bullet_cord.z = 0.1*-cos(self.angle)
             #self.player1_bullet_cord.x += self.player1_bullet_cord.x
             #self.player1_bullet_cord.z += self.player1_bullet_cord.z
-            
-        self.check_collision()
+        
+        for item in self.object_list:
+            self.check_collision(item)
         
         # crosshair
         self.player1_crosshair_x = 0.1*cos(self.player1_angle+1.6) + self.view_matrix.eye.x
@@ -616,6 +623,9 @@ class GraphicsProgram3D:
                         self.LA_key_down = True
                     if event.key == K_RIGHT:
                         self.RA_key_down = True
+                    # sprint
+                    if event.key == K_LSHIFT:
+                        self.L_shift_down = True
 
                     if event.key == K_g:
                         self.G_key_down = True
@@ -649,6 +659,9 @@ class GraphicsProgram3D:
                     if event.key == K_e:
                         self.E_key_down = False
 
+                    # sprint
+                    if event.key == K_LSHIFT:
+                        self.L_shift_down = False
             
             # Send Network Stuff
             # self.player2_x, self.player2_z, self.player2_angle, self.player2_shot= self.parse_data(self.send_data()) # --- uncomment this
