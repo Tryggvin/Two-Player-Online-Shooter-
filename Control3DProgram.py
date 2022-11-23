@@ -30,7 +30,7 @@ class GraphicsProgram3D:
         self.shader.use()
 
         # networking 
-        # self.net = Network(hoster) #------ uncomment this ------ 
+        self.net = Network(hoster) #------ uncomment this ------ 
 
         self.model_matrix = ModelMatrix()
 
@@ -518,12 +518,22 @@ class GraphicsProgram3D:
                 self.shader.set_solid_color(0,0,0)
                 self.crosshair.draw(self.shader)
                 self.model_matrix.pop_matrix()
+
+                self.model_matrix.load_identity()
+                self.model_matrix.push_matrix()
+                self.model_matrix.add_translation(self.player1_crosshair_x,self.view_matrix.eye.y-0.1,self.player1_crosshair_z)
+                self.model_matrix.add_scale(0.03,0.01,0.03)
+                self.model_matrix.add_rotate_y(self.player1_angle)
+                self.shader.set_model_matrix(self.model_matrix.matrix)
+                self.shader.set_solid_color(0,0,0)
+                self.player.draw(self.shader)
+                self.model_matrix.pop_matrix()
             
             # bullet
             for bul in self.bullets:
                 self.model_matrix.load_identity()
                 self.model_matrix.push_matrix()
-                self.model_matrix.add_translation(bul.x,bul.y,bul.z)
+                self.model_matrix.add_translation(bul.x,bul.y-0.15,bul.z)
                 self.model_matrix.add_scale(0.02,0.02,0.02)
                 self.shader.set_model_matrix(self.model_matrix.matrix)
                 self.shader.set_solid_color(0,0,1)
@@ -672,7 +682,7 @@ class GraphicsProgram3D:
                         self.L_shift_down = False
             
             # Send Network Stuff
-            # self.player2_x, self.player2_z, self.player2_angle, self.player2_shot= self.parse_data(self.send_data()) # --- uncomment this
+            self.player2_x, self.player2_z, self.player2_angle, self.player2_shot= self.parse_data(self.send_data()) # --- uncomment this
             
             self.update()
             self.display()

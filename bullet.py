@@ -11,8 +11,8 @@ class bullet():
         self.shape = Sphere()
     
     def update(self, delta_time):
-        self.x += 0.9*cos(self.angle)*delta_time
-        self.z += -0.9*sin(self.angle)*delta_time
+        self.x += 12*cos(self.angle)*delta_time
+        self.z += -12*sin(self.angle)*delta_time
 
     def set(self, x, y, z, angle):
         self.angle = angle
