@@ -9,6 +9,9 @@ from pygame.locals import *
 
 import sys
 import time
+from _thread import *
+import server
+from box import collision_object
 
 from Shaders import *
 from Matrices import *
@@ -16,7 +19,7 @@ from maze import *
 from network import Network
 
 class GraphicsProgram3D:
-    def __init__(self):
+    def __init__(self, hoster):
 
         pygame.init() 
         pygame.display.set_mode((800,600), pygame.OPENGL|pygame.DOUBLEBUF)
@@ -25,7 +28,7 @@ class GraphicsProgram3D:
         self.shader.use()
 
         # networking 
-        self.net = Network() #------ uncomment this ------ 
+        self.net = Network(hoster) #------ uncomment this ------ 
 
         self.model_matrix = ModelMatrix()
 
@@ -42,7 +45,7 @@ class GraphicsProgram3D:
         #projection matrix
         self.projection_matrix = ProjectionMatrix()
         # self.projection_matrix.set_orthographic(-2, 2, -2, 2, 0.5, 10)
-        self.projection_matrix.set_perspective(pi / 2, 800 / 600, 0.1, 50)
+        self.projection_matrix.set_perspective(pi / 2, 800 / 600, 0.009, 50)
         self.shader.set_projection_matrix(self.projection_matrix.get_matrix())
 
         self.cube = Cube()
@@ -50,6 +53,11 @@ class GraphicsProgram3D:
         self.player2 = Cube()
         self.player2_x = 0
         self.player2_z = 0
+
+        # crosshair
+        self.crosshair = Sphere()
+        self.player1_crosshair_x = 0
+        self.player1_crosshair_z = 0
 
         # shooting player1
         self.player1_bullet = Sphere()
@@ -61,6 +69,9 @@ class GraphicsProgram3D:
         self.player2_shot = 0
         self.player2_bullet_cord = Point(0,0,0)
         self.player2_bullet_alive = False
+
+        # objects 
+        self.object_list = []
         
 
         self.clock = pygame.time.Clock()
@@ -90,11 +101,38 @@ class GraphicsProgram3D:
         # print(self.maze.Grid[99].eastWall)
 
 
+    def check_collision(self):
+        # collision box test
+        if (-0.4 > self.view_matrix.eye.z > -1.5)  and (0.5 > self.view_matrix.eye.x):
+            if (0.4 < self.view_matrix.eye.x):
+                self.view_matrix.eye.x = 0.4
+        if (-0.4 > self.view_matrix.eye.z > -1.5)  and (1.5 < self.view_matrix.eye.x):
+            if (1.6 > self.view_matrix.eye.x):
+                self.view_matrix.eye.x = 1.6
+
+        if (-0.5 < self.view_matrix.eye.z)  and (0.4 < self.view_matrix.eye.x < 1.6):
+            if (-0.4 > self.view_matrix.eye.z):
+                self.view_matrix.eye.z = -0.4
+        #if (-0.4 > self.view_matrix.eye.z > -1.5)  and (0.4 < self.view_matrix.eye.x < 1.6):
+        #    if (1.6 > self.view_matrix.eye.x):
+        #        self.view_matrix.eye.x = 1.6y
+            #if (-0.4 > self.view_matrix.eye.z > -1.5)  and (0.4 < self.view_matrix.eye.x < 1.6):
+            
+            #    print("second check passed")
+                
+            #elif (-0.4 > self.view_matrix.eye.z > -1.5)  and (0.4 < self.view_matrix.eye.x < 1.6):
+            #    self.view_matrix.eye.z = -0.4
+            #elif (-0.4 > self.view_matrix.eye.z > -1.5)  and (0.4 < self.view_matrix.eye.x < 1.6):
+            #    self.view_matrix.eye.z = -0.4
+            
+
     def update(self):
         delta_time = self.clock.tick() / 1000.0
         self.angle += pi * delta_time
         # if angle > 2 * pi:
         #     angle -= (2 * pi
+
+        self.player2_x
 
         if self.UP_key_down:
             self.white_background = True
@@ -132,16 +170,20 @@ class GraphicsProgram3D:
             self.shot = 0
             self.player1_bullet_cord = Vector(self.view_matrix.eye.x,-.4,self.view_matrix.eye.z)
             print("I'm shooting")
+            print("x: " + str(self.view_matrix.eye.x) + ", z:" + str(self.view_matrix.eye.z))
             # load bullet here
-        if self.player1_bullet_alive:
-            print(self.angle)
-            self.player1_bullet_cord.x *= 0.1*sin(self.angle)
-            self.player1_bullet_cord.z *= 0.1*-cos(self.angle)
+        #if self.player1_bullet_alive:
+            #print(self.angle)
+            #self.player1_bullet_cord.x = 0.1*sin(self.angle)
+            #self.player1_bullet_cord.z = 0.1*-cos(self.angle)
             #self.player1_bullet_cord.x += self.player1_bullet_cord.x
             #self.player1_bullet_cord.z += self.player1_bullet_cord.z
             
+        self.check_collision()
         
-
+        # crosshair
+        self.player1_crosshair_x = 0.1*cos(self.player1_angle+1.6) + self.view_matrix.eye.x
+        self.player1_crosshair_z = -0.1*sin(self.player1_angle+1.6) + self.view_matrix.eye.z
 
         if self.player2_shot == 1:
             print("the other player shot a bullet")
@@ -185,6 +227,18 @@ class GraphicsProgram3D:
             self.player.draw(self.shader)
             self.model_matrix.pop_matrix()
 
+            # collision box test
+            self.model_matrix.load_identity()
+            self.model_matrix.push_matrix()
+            # tmp = collision_object(1)
+            self.model_matrix.add_translation(1,0,-1)
+            self.model_matrix.add_scale(1,1,1)
+            self.shader.set_model_matrix(self.model_matrix.matrix)
+            self.shader.set_solid_color(1,0,1)
+            self.player.draw(self.shader)
+            self.model_matrix.pop_matrix()
+            
+
             # floor 
             self.model_matrix.load_identity()
             self.model_matrix.push_matrix()
@@ -205,6 +259,18 @@ class GraphicsProgram3D:
                 self.shader.set_model_matrix(self.model_matrix.matrix)
                 self.shader.set_solid_color(0,0,1)
                 self.player.draw(self.shader)
+                self.model_matrix.pop_matrix()
+
+                # crosshair 
+            if count == 0:
+                self.model_matrix.load_identity()
+                self.model_matrix.push_matrix()
+                self.model_matrix.add_translation(self.player1_crosshair_x,self.view_matrix.eye.y,self.player1_crosshair_z)
+                self.model_matrix.add_scale(0.001,0.001,0.001)
+                self.model_matrix.add_rotate_y(self.player1_angle)
+                self.shader.set_model_matrix(self.model_matrix.matrix)
+                self.shader.set_solid_color(0,0,0)
+                self.crosshair.draw(self.shader)
                 self.model_matrix.pop_matrix()
             
             # bullet
@@ -302,7 +368,7 @@ class GraphicsProgram3D:
                         self.player1_bullet_alive = True
                         self.shot = 1
                     if event.key == K_DOWN:
-                        self.DW_key_down = True
+                        self.DW_key_down = False
                     # slide
                     if event.key == K_w:
                         self.W_key_down = True
@@ -352,4 +418,9 @@ class GraphicsProgram3D:
         self.program_loop()
 
 if __name__ == "__main__":
-    GraphicsProgram3D().start()
+    inn = input("type 'y' for hosting or 'n'")
+    hoster = False
+    if inn == 'y':
+        hoster = True
+        start_new_thread(server.host_server,())
+    GraphicsProgram3D(hoster).start()

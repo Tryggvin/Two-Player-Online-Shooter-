@@ -152,7 +152,6 @@ class ViewMatrix:
                 self.n.x, self.n.y, self.n.z, minusEye.dot(self.n),
                 0,        0,        0,        1]
 
-
 # The ProjectionMatrix class builds transformations concerning
 # the camera's "lens"
 
