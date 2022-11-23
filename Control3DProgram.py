@@ -11,7 +11,6 @@ import sys
 import time
 from _thread import *
 import server
-from collision_object import collision_object
 
 from Shaders import *
 from Matrices import *
@@ -160,6 +159,22 @@ class GraphicsProgram3D:
         if (item.z2 > self.view_matrix.eye.z)  and (item.x1-0.1 < self.view_matrix.eye.x < item.x2+0.1):
             if (item.z2-0.1 < self.view_matrix.eye.z):
                 self.view_matrix.eye.z = item.z2-0.1
+
+    def check_bullet_collision(self, item: collision_object, bul: bullet ):
+        # collision box test
+        if (item.z1+0.01 > bul.z > item.z2)  and (item.x1 > bul.x):
+            if (item.x1-0.01 < bul.x):
+                bul.x = item.x1-0.01
+        if (item.z1+0.01 > bul.z > item.z2)  and (item.x2 < bul.x):
+            if (item.x2+0.01 > bul.x):
+                bul.x = item.x2+0.01
+
+        if (item.z1 < bul.z)  and (item.x1-0.01 < bul.x < item.x2+0.01):
+            if (item.z1+0.01 > bul.z):
+                bul.z = item.z1+0.01
+        if (item.z2 > bul.z)  and (item.x1-0.1 < bul.x < item.x2+0.01):
+            if (item.z2-0.01 < bul.eye.z):
+                bul.z = item.z2-0.01
             
 
     def update(self):
@@ -299,6 +314,10 @@ class GraphicsProgram3D:
         
         for item in self.collision_obj:
             self.check_collision(item)
+            self.check_bullet_collision(item, self.player1_bullet)
+            self.check_bullet_collision(item, self.player2_bullet)
+        self.check_collision(self.player2_bullet.collision)
+        
         
         # crosshair
         self.player1_crosshair_x = 0.1*cos(self.player1_angle+1.6) + self.view_matrix.eye.x
