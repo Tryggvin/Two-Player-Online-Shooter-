@@ -17,6 +17,7 @@ from Shaders import *
 from Matrices import *
 from maze import *
 from network import Network
+from bullet import bullet
 
 class GraphicsProgram3D:
     def __init__(self, hoster):
@@ -60,21 +61,18 @@ class GraphicsProgram3D:
         self.player1_crosshair_z = 0
 
         # shooting player1
-        self.player1_bullet = Sphere()
+        self.player1_bullet = bullet(0,-100, 0, 0)
         self.shot = 0
-        self.player1_bullet_cord = Point(0,0,0)
-        self.player1_bullet_alive = False
+        
         # shooting player1
-        self.player2_bullet = Sphere()
+        self.player2_bullet = bullet(0,-100, 0, 0)
         self.player2_shot = 0
-        self.player2_bullet_cord = Point(0,0,0)
-        self.player2_bullet_alive = False
 
         # objects 
         self.col = collision_object(1, -1, 1, 1)
         self.object_list = []
         self.object_list.append(self.col)
-        
+        self.bullets = [self.player1_bullet, self.player2_bullet]
 
         self.clock = pygame.time.Clock()
         self.clock.tick()
@@ -139,7 +137,6 @@ class GraphicsProgram3D:
         # slide
         if self.L_shift_down:
             self.speed *= 1.01
-            print(self.speed)
         else:
             self.speed = 1
         if self.speed > 4:
@@ -173,16 +170,18 @@ class GraphicsProgram3D:
         # shooting 
         if self.shot == 1:
             self.shot = 0
-            self.player1_bullet_cord = Vector(self.view_matrix.eye.x,-.4,self.view_matrix.eye.z)
             print("I'm shooting")
-            print("x: " + str(self.view_matrix.eye.x) + ", z:" + str(self.view_matrix.eye.z))
-            # load bullet here
-        #if self.player1_bullet_alive:
-            #print(self.angle)
-            #self.player1_bullet_cord.x = 0.1*sin(self.angle)
-            #self.player1_bullet_cord.z = 0.1*-cos(self.angle)
-            #self.player1_bullet_cord.x += self.player1_bullet_cord.x
-            #self.player1_bullet_cord.z += self.player1_bullet_cord.z
+            self.player1_bullet.set(self.view_matrix.eye.x,0,self.view_matrix.eye.z,self.player1_angle+1.6)
+
+        if self.player1_bullet.alive:
+            self.player1_bullet.update(delta_time)
+    
+        if self.player2_shot == 1:
+            print("the other player shot a bullet")
+            self.player2_bullet.set(self.player2_x,0,self.player2_z,self.player2_angle+1.6)
+        if self.player2_bullet.alive:
+            self.player2_bullet.update(delta_time)
+
         
         for item in self.object_list:
             self.check_collision(item)
@@ -191,9 +190,7 @@ class GraphicsProgram3D:
         self.player1_crosshair_x = 0.1*cos(self.player1_angle+1.6) + self.view_matrix.eye.x
         self.player1_crosshair_z = -0.1*sin(self.player1_angle+1.6) + self.view_matrix.eye.z
 
-        if self.player2_shot == 1:
-            print("the other player shot a bullet")
-            # load bullet here
+        
         
         self.player2_gun_rotation_x = .16*cos(self.player2_angle+0.9) + self.player2_x
         self.player2_gun_rotation_z = -.1*sin(self.player2_angle+0.9) + self.player2_z
@@ -280,14 +277,15 @@ class GraphicsProgram3D:
                 self.model_matrix.pop_matrix()
             
             # bullet
-            self.model_matrix.load_identity()
-            self.model_matrix.push_matrix()
-            self.model_matrix.add_translation(self.player1_bullet_cord.x,self.player1_bullet_cord.y,self.player1_bullet_cord.z)
-            self.model_matrix.add_scale(0.02,0.02,0.02)
-            self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(0,0,1)
-            self.player1_bullet.draw(self.shader)
-            self.model_matrix.pop_matrix()
+            for bul in self.bullets:
+                self.model_matrix.load_identity()
+                self.model_matrix.push_matrix()
+                self.model_matrix.add_translation(bul.x,bul.y,bul.z)
+                self.model_matrix.add_scale(0.02,0.02,0.02)
+                self.shader.set_model_matrix(self.model_matrix.matrix)
+                self.shader.set_solid_color(0,0,1)
+                bul.shape.draw(self.shader)
+                self.model_matrix.pop_matrix()
                 
                 
 
