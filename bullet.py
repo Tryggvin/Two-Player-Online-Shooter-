@@ -1,4 +1,5 @@
 from Base3DObjects import Sphere
+from collision_object import collision_object
 from math import *
 
 class bullet():
@@ -9,6 +10,7 @@ class bullet():
         self.angle = angle
         self.alive = True
         self.shape = Sphere()
+        self.collision = collision_object(x, y, z, 0.2, 0.2, 0.2)
     
     def update(self, delta_time):
         self.x += 12*cos(self.angle)*delta_time
