@@ -1,9 +1,11 @@
 class collision_object():
-    def __init__(self, x,z, width, length):
+    def __init__(self, x,y,z, width, length, height):
         self.x = x
         self.z = z
+        self.y = y
         self.width = width
-        self.length = length
+        self.height = height
+        self.len = length
         self.x1 = x - (width / 2)
         self.x2 = x + (width / 2)
         self.z1 = z + (length / 2)
