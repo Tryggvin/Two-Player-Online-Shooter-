@@ -18,6 +18,7 @@ class Network:
             #self.host = input("what ip you want to connect? ")
             #self.port = int(input("what Port? "))
             self.host = "130.208.243.61"
+            # self.host = "127.0.0.1"
             self.port = 4050
             self.addr = (self.host, self.port)
 
