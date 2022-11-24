@@ -132,7 +132,7 @@ class GraphicsProgram3D:
         # self.boxes = [collision_object(box[0]-14.5,box[1]-9.5,2,2)for box in self.hnit]
         self.collision_obj =[
              collision_object(0,-0.3,5.5,1,10,1.5), collision_object(0,-0.3,-5.5,1,10,1.5),
-        collision_object(0,0.6,0,1,20,0.3),
+        # collision_object(0,0.6,0,1,20,0.3),
             collision_object(-7.5,-0.3,-4.5,1,2,1),collision_object(-5.5,-0.3,5.5,1,2,1),
         collision_object(-9.5,-0.3,0.5,1,2,1),collision_object(-1.5,-0.3,-5.5,1,2,1),
         collision_object(-2.5,-0.3,7.5,1,2,1),collision_object(3.5,-0.3,-4.5,1,2,1),
@@ -358,6 +358,7 @@ class GraphicsProgram3D:
             self.check_p1_bullet_collision(item, self.player1_bullet)
             self.check_p1_bullet_collision(item, self.player2_bullet)
         self.check_player_bullet_collision(collision_object(self.view_matrix.eye.x,self.view_matrix.eye.y,self.view_matrix.eye.z,0.2,0.2,0.2), self.player2_bullet)
+        self.check_collision(collision_object(0,-3,self.door_z,0.9,1,1.5))
         #self.check_collision(self.player2_bullet.collision)
         
         
@@ -440,17 +441,18 @@ class GraphicsProgram3D:
             # self.model_matrix.pop_matrix()
 
 
-            # self.model_matrix.load_identity()
-            # self.model_matrix.push_matrix()
-            #     # tmp = collision_object(1)
-            # self.model_matrix.add_translation(0,0.6,0)
-            # self.model_matrix.add_scale(1,0.3,20)
-            # self.shader.set_model_matrix(self.model_matrix.matrix)
-            # self.shader.set_solid_color(1,0,0)
-            # self.player.draw(self.shader)
-            # self.model_matrix.pop_matrix()
+            self.model_matrix.load_identity()
+            self.model_matrix.push_matrix()
+                # tmp = collision_object(1)
+            self.model_matrix.add_translation(0,0.6,0)
+            self.model_matrix.add_scale(1,0.3,20)
+            self.shader.set_model_matrix(self.model_matrix.matrix)
+            self.shader.set_solid_color(1,0,0)
+            self.player.draw(self.shader)
+            self.model_matrix.pop_matrix()
 
             #door
+            
             self.model_matrix.load_identity()
             self.model_matrix.push_matrix()
                 # tmp = collision_object(1)
@@ -620,11 +622,11 @@ class GraphicsProgram3D:
             #neck
             self.model_matrix.load_identity()
             self.model_matrix.push_matrix()
-            self.model_matrix.add_translation(self.player2_x,0.1,self.player2_z)
-            self.model_matrix.add_scale(0.05,0.05,0.05)
+            self.model_matrix.add_translation(self.player2_x,-0.2,self.player2_z)
+            self.model_matrix.add_scale(0.15,0.4,0.15)
             self.model_matrix.add_rotate_y(self.player2_angle)
             self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(0,0,1)
+            self.shader.set_solid_color(1,0,1)
             self.player.draw(self.shader)
             self.model_matrix.pop_matrix()
 
