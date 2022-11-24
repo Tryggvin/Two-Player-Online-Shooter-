@@ -114,6 +114,8 @@ class GraphicsProgram3D:
 
         self.button_y_2 = -0.05
         self.L_shift_down = False
+
+        self.id = 0
         
         self.white_background = False
 
@@ -147,7 +149,7 @@ class GraphicsProgram3D:
 
     def respawn(self):
         self.player1_alive = True
-        if self.net.id == 0:
+        if self.net.id == "0":
             self.view_matrix.eye.x = 14
             self.view_matrix.eye.z = -9
         else:
@@ -358,7 +360,7 @@ class GraphicsProgram3D:
             self.check_p1_bullet_collision(item, self.player1_bullet)
             self.check_p1_bullet_collision(item, self.player2_bullet)
         self.check_player_bullet_collision(collision_object(self.view_matrix.eye.x,self.view_matrix.eye.y,self.view_matrix.eye.z,0.2,0.2,0.2), self.player2_bullet)
-        #self.check_collision(self.player2_bullet.collision)
+        self.check_collision(collision_object(self.player2_x,0,self.player2_z,0.2,0.2,0.2))
         
         
         # crosshair
