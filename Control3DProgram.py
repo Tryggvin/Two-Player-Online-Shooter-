@@ -142,6 +142,13 @@ class GraphicsProgram3D:
         
         ]
 
+    def respawn(self):
+        if self.net.id == 1:
+            self.view_matrix.eye.x = 14
+            self.view_matrix.eye.z = -9
+        else:
+            self.view_matrix.eye.x = -14
+            self.view_matrix.eye.z = 9
             
 
     def check_collision(self, item: collision_object):
@@ -232,7 +239,7 @@ class GraphicsProgram3D:
         # yaw
 
         if self.G_key_down:
-            self.door = True
+            self.respawn()
 
         #in button area 1
         if (self.view_matrix.eye.z <= 0.5) and (self.view_matrix.eye.z >= -0.5) and (self.view_matrix.eye.x <= 5.5) and (self.view_matrix.eye.x >= 4.5):
