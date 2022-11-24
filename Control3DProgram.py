@@ -24,12 +24,11 @@ class GraphicsProgram3D:
 
         pygame.init() 
         pygame.display.set_mode((1280,720), pygame.OPENGL|pygame.DOUBLEBUF)
-
         self.shader = Shader3D()
         self.shader.use()
 
         # networking 
-        self.net = Network(hoster) #------ uncomment this ------ 
+        self.net = Network(hoster)
 
         self.model_matrix = ModelMatrix()
 
@@ -55,8 +54,6 @@ class GraphicsProgram3D:
         self.player2_x = 15
         self.player2_z = 20
         self.door_z = 0.0
-        #collision
-        # self.collision = collision_object(1,1,1,1)
 
         #random
         self.random = random
@@ -107,6 +104,14 @@ class GraphicsProgram3D:
         self.RA_key_down = False
         self.G_key_down = False
         self.E_key_down = False
+        self.L_ctrl_down = False
+        self.space_down = False
+        self.jump = 0
+        self.p2jump = 0
+
+        
+        self.texture_id01 = self.load_texture(sys.path[0] + "/textures/test.png")
+        self.texture_id02 = self.load_texture(sys.path[0] + "/textures/wall.jpg")
 
         
 
@@ -121,17 +126,7 @@ class GraphicsProgram3D:
 
         self.maze = maze()
         self.maze.make_maze(10)
-        # print(self.maze.Grid[99].eastWall)
 
-        # if self.net.id == 1:
-        #     self.view_matrix.eye.x = 20
-        #     self.view_matrix.eye.z = 10
-
-        # self.hnit = [(7.0,5.0),(9.0,15.0),(5.0,10.0),(13.0,4.0),(12.0,17.0),(18.0,5.0),(19.0,15.0),(18.0,10.0),(21.0,15.0),(25.0,3.0)]
-        # # self.hnit = [(5,10),(6,10),(7,10),(8,10),(9,10)]
-        # # self.hnit = [(10,x) for x in range(20)]
-        # #box array
-        # self.boxes = [collision_object(box[0]-14.5,box[1]-9.5,2,2)for box in self.hnit]
         self.collision_obj =[
              collision_object(0,-0.3,5.5,1,10,1.5), collision_object(0,-0.3,-5.5,1,10,1.5),
         # collision_object(0,0.6,0,1,20,0.3),
@@ -147,6 +142,18 @@ class GraphicsProgram3D:
         ]
         self.respawn()
 
+    def load_texture(self, path_string):
+        surface = pygame.image.load(path_string)
+        tex_string = pygame.image.tostring(surface, "RGBA",1)
+        width = surface.get_width()
+        height = surface.get_height()
+        tex_id = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, tex_id)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_string)
+        return tex_id
+
     def respawn(self):
         self.player1_alive = True
         if self.net.id == "0":
@@ -155,8 +162,6 @@ class GraphicsProgram3D:
         else:
             self.view_matrix.eye.x = -14
             self.view_matrix.eye.z = 9
-            
-
     def check_collision(self, item: collision_object):
         # collision box test
         if (item.z1+0.1 > self.view_matrix.eye.z > item.z2)  and (item.x1 > self.view_matrix.eye.x):
@@ -172,7 +177,6 @@ class GraphicsProgram3D:
         if (item.z2 > self.view_matrix.eye.z)  and (item.x1-0.1 < self.view_matrix.eye.x < item.x2+0.1):
             if (item.z2-0.1 < self.view_matrix.eye.z):
                 self.view_matrix.eye.z = item.z2-0.1
-
     def check_p1_bullet_collision(self, item: collision_object, bul: bullet):
         # collision box test
         if (item.z1+0.1 > bul.z > item.z2)  and (item.x1 > bul.x):
@@ -269,19 +273,6 @@ class GraphicsProgram3D:
         else:
             self.in_button_area_2 = False
 
-        # if self.E_key_down and (self.in_button_area_1 or self.in_button_area_2): 
-        #     if self.in_button_area_1:
-        #         self.button_y_1 = -0.06
-        #     if self.in_button_area_2:
-        #         self.button_y_2 = -0.06
-
-        #     if self.door == False and self.door_z <= 1:
-            
-        #         self.door = True
-        #         print("open")
-        #     else:
-        #         self.button_y_1 = -0.05
-        #         self.button_y_2 = -0.05
             
         if self.E_key_down and (self.in_button_area_1 or self.in_button_area_2): 
             print(self.door_z)
@@ -381,10 +372,6 @@ class GraphicsProgram3D:
         tmp_point = Point(self.view_matrix.eye.x,1,self.view_matrix.eye.z)
         self.map_matrix.eye = tmp_point
 
-        # print("x : {}".format(self.view_matrix.eye.x))
-        # print("z : {}".format(self.view_matrix.eye.z))
-        #blockNum = self.maze.check_player_location(self.view_matrix.eye.x,self.view_matrix.eye.z)
-        #print(blockNum)
 
     def display(self):
         glEnable(GL_DEPTH_TEST)  ### --- NEED THIS FOR NORMAL 3D BUT MANY EFFECTS BETTER WITH glDisable(GL_DEPTH_TEST) ... try it! --- ###
@@ -396,215 +383,152 @@ class GraphicsProgram3D:
                 glViewport(0, 0, 1280, 720)
                 self.shader.set_view_matrix(self.view_matrix.get_matrix())
             else:
-                glViewport(320,480,160,120)
+                glViewport(100,550,160,120)
                 self.shader.set_view_matrix(self.map_matrix.get_matrix())
 
-            # skybox 
+            self.shader.set_eye_position(self.view_matrix.eye)
+            #self.shader.set_eye_position(Point(0,10,0))
+            # light pos
+            self.shader.set_light_position(Point(self.view_matrix.eye.x,2,self.view_matrix.eye.z))
+            #self.shader.set_light_position(Point(4.0*cos(self.angle),5,4.0*sin(self.angle)))
+            self.shader.set_light_diffuse(1.0,1.0,1.0)
+            self.shader.set_light_specular(1.0,1.0,1.0)
+
+            self.shader.set_material_specular(1.0,1.0,1.0)
+            self.shader.set_material_shine(1000)
+
             self.model_matrix.load_identity()
+
+            #self.shader.set_material_diffuse(1.0,1.0,1.0)
+            
+            
+            #self.shader.set_light_diffuse(1,1,1)
+            
+
+            # skybox 
+            
+            #self.model_matrix.push_matrix()
+            #self.model_matrix.add_translation(0,0,0)
+            #self.model_matrix.add_scale(35,20,25)
+            #self.shader.set_model_matrix(self.model_matrix.matrix)
+            #self.shader.set_material_diffuse(0.5294,0.8078,0.9216)
+            #self.player.draw(self.shader)
+            #self.model_matrix.pop_matrix()
+
+            glBindTexture(GL_TEXTURE_2D, self.texture_id01)
+            self.shader.set_material_diffuse(1,1,1)
             self.model_matrix.push_matrix()
-            self.model_matrix.add_translation(0,0,0)
-            self.model_matrix.add_scale(35,20,25)
+            self.model_matrix.add_translation(14,0,-5)
+            self.model_matrix.add_scale(1,1,1)
             self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(0.5294,0.8078,0.9216)
+            
             self.player.draw(self.shader)
             self.model_matrix.pop_matrix()
 
             # collision box test
 
             for obj in self.collision_obj:
-                self.model_matrix.load_identity()
+                #glBindTexture(GL_TEXTURE_2D, self.texture_id01)
+                #self.shader.set_diffuse_texture(self.texture_id02)
+                self.shader.set_material_diffuse(1.0,0.0,0.0)
                 self.model_matrix.push_matrix()
                 # tmp = collision_object(1)
                 self.model_matrix.add_translation(obj.x,obj.y,obj.z)
                 self.model_matrix.add_scale(obj.width,obj.height,obj.len) 
                 self.shader.set_model_matrix(self.model_matrix.matrix)
-                self.shader.set_solid_color(1,0,1)
+                
+                
+                #self.shader.set_material_diffuse(1,0,1)
                 self.player.draw(self.shader)
                 self.model_matrix.pop_matrix()
 
-            #wall
-            # self.model_matrix.load_identity()
-            # self.model_matrix.push_matrix()
-            #     # tmp = collision_object(1)
-            # self.model_matrix.add_translation(0,-.3,5.5)
-            # self.model_matrix.add_scale(1,1.5,10)
-            # self.shader.set_model_matrix(self.model_matrix.matrix)
-            # self.shader.set_solid_color(1,0,0)
-            # self.player.draw(self.shader)
-            # self.model_matrix.pop_matrix()
-
-            # self.model_matrix.load_identity()
-            # self.model_matrix.push_matrix()
-            #     # tmp = collision_object(1)
-            # self.model_matrix.add_translation(0,-.3,-5.5)
-            # self.model_matrix.add_scale(1,1.5,10)
-            # self.shader.set_model_matrix(self.model_matrix.matrix)
-            # self.shader.set_solid_color(1,0,0)
-            # self.player.draw(self.shader)
-            # self.model_matrix.pop_matrix()
 
 
-            self.model_matrix.load_identity()
             self.model_matrix.push_matrix()
                 # tmp = collision_object(1)
             self.model_matrix.add_translation(0,0.6,0)
             self.model_matrix.add_scale(1,0.3,20)
             self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(1,0,0)
+            self.shader.set_material_diffuse(1,0,0)
             self.player.draw(self.shader)
             self.model_matrix.pop_matrix()
 
             #door
             
-            self.model_matrix.load_identity()
             self.model_matrix.push_matrix()
                 # tmp = collision_object(1)
             self.model_matrix.add_translation(0,-0.3,self.door_z)
             self.model_matrix.add_scale(0.9,1.5,1)
             self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(0,0,1)
+            self.shader.set_material_diffuse(0,0,1)
             self.player.draw(self.shader)
             self.model_matrix.pop_matrix()
 
-
-            #buttons
-            # self.model_matrix.load_identity()
-            # self.model_matrix.push_matrix()
-            #     # tmp = collision_object(1)
-            # self.model_matrix.add_translation(5,-0.3,0)
-            # self.model_matrix.add_scale(0.1,0.5,0.1)
-            # self.shader.set_model_matrix(self.model_matrix.matrix)
-            # self.shader.set_solid_color(0,0,1)
-            # self.player.draw(self.shader)
-            # self.model_matrix.pop_matrix()
-
-            self.model_matrix.load_identity()
             self.model_matrix.push_matrix()
                 # tmp = collision_object(1)
             self.model_matrix.add_translation(5,self.button_y_1,0)
             self.model_matrix.add_scale(0.05,0.05,0.05)
             self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(1,0,0)
+            self.shader.set_material_diffuse(1,0,0)
             self.player.draw(self.shader)
             self.model_matrix.pop_matrix()
             
-            # self.model_matrix.load_identity()
-            # self.model_matrix.push_matrix()
-            #     # tmp = collision_object(1)
-            # self.model_matrix.add_translation(-5,-0.3,0)
-            # self.model_matrix.add_scale(0.1,0.5,0.1)
-            # self.shader.set_model_matrix(self.model_matrix.matrix)
-            # self.shader.set_solid_color(0,0,1)
-            # self.player.draw(self.shader)
-            # self.model_matrix.pop_matrix()
-
-            self.model_matrix.load_identity()
             self.model_matrix.push_matrix()
                 # tmp = collision_object(1)
             self.model_matrix.add_translation(-5,self.button_y_2,0)
             self.model_matrix.add_scale(0.05,0.05,0.05)
             self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(1,0,0)
+            self.shader.set_material_diffuse(1,0,0)
             self.player.draw(self.shader)
-            self.model_matrix.pop_matrix()
-
-
-            #border
-            # self.model_matrix.load_identity()
-            # self.model_matrix.push_matrix()
-            #     # tmp = collision_object(1)
-            # self.model_matrix.add_translation(0,-.3,-10)
-            # self.model_matrix.add_scale(30,1.5,0.1)
-            # self.shader.set_model_matrix(self.model_matrix.matrix)
-            # self.shader.set_solid_color(1,1,1)
-            # self.player.draw(self.shader)
-            # self.model_matrix.pop_matrix()
-
-            # self.model_matrix.load_identity()
-            # self.model_matrix.push_matrix()
-            #     # tmp = collision_object(1)
-            # self.model_matrix.add_translation(0,-.3,10)
-            # self.model_matrix.add_scale(30,1.5,0.1)
-            # self.shader.set_model_matrix(self.model_matrix.matrix)
-            # self.shader.set_solid_color(1,1,1)
-            # self.player.draw(self.shader)
-            # self.model_matrix.pop_matrix()
-
-            # self.model_matrix.load_identity()
-            # self.model_matrix.push_matrix()
-            #     # tmp = collision_object(1)
-            # self.model_matrix.add_translation(-15,-.3,0)
-            # self.model_matrix.add_scale(0.1,1.5,30)
-            # self.shader.set_model_matrix(self.model_matrix.matrix)
-            # self.shader.set_solid_color(1,1,1)
-            # self.player.draw(self.shader)
-            # self.model_matrix.pop_matrix()
-
-            # self.model_matrix.load_identity()
-            # self.model_matrix.push_matrix()
-            #     # tmp = collision_object(1)
-            # self.model_matrix.add_translation(15,-.3,0)
-            # self.model_matrix.add_scale(0.1,1.5,30)
-            # self.shader.set_model_matrix(self.model_matrix.matrix)
-            # self.shader.set_solid_color(1,1,1)
-            # self.player.draw(self.shader)
-            # self.model_matrix.pop_matrix()
-
-
-            
+            self.model_matrix.pop_matrix()        
 
             # floor 
-            self.model_matrix.load_identity()
             self.model_matrix.push_matrix()
             self.model_matrix.add_translation(0,-.8,0)
             self.model_matrix.add_scale(30,0.1,20)
             self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(0.5,0.5,0.5)
+            self.shader.set_material_diffuse(0.5,0.5,0.5)
             self.player.draw(self.shader)
             self.model_matrix.pop_matrix()
             
             if(count != 0):
                 # ================================= player 1 =============================================== #
-                self.model_matrix.load_identity()
                 self.model_matrix.push_matrix()
                 self.model_matrix.add_translation(self.view_matrix.eye.x,self.view_matrix.eye.y,self.view_matrix.eye.z)
                 self.model_matrix.add_scale(0.2,0.2,0.2)
                 self.model_matrix.add_rotate_y(self.player1_angle)
                 self.shader.set_model_matrix(self.model_matrix.matrix)
-                self.shader.set_solid_color(0,0,1)
+                self.shader.set_material_diffuse(0,0,1)
                 self.player.draw(self.shader)
                 self.model_matrix.pop_matrix()
 
                 # crosshair 
             if count == 0:
-                self.model_matrix.load_identity()
                 self.model_matrix.push_matrix()
                 self.model_matrix.add_translation(self.player1_crosshair_x,self.view_matrix.eye.y,self.player1_crosshair_z)
                 self.model_matrix.add_scale(0.001,0.001,0.001)
                 self.model_matrix.add_rotate_y(self.player1_angle)
                 self.shader.set_model_matrix(self.model_matrix.matrix)
-                self.shader.set_solid_color(0,0,0)
+                self.shader.set_material_diffuse(0,0,0)
                 self.crosshair.draw(self.shader)
                 self.model_matrix.pop_matrix()
 
-                self.model_matrix.load_identity()
                 self.model_matrix.push_matrix()
                 self.model_matrix.add_translation(self.player1_crosshair_x,self.view_matrix.eye.y-0.1,self.player1_crosshair_z)
                 self.model_matrix.add_scale(0.03,0.01,0.03)
                 self.model_matrix.add_rotate_y(self.player1_angle)
                 self.shader.set_model_matrix(self.model_matrix.matrix)
-                self.shader.set_solid_color(0,0,0)
+                self.shader.set_material_diffuse(0,0,0)
                 self.player.draw(self.shader)
                 self.model_matrix.pop_matrix()
             
             # bullet
             for bul in self.bullets:
-                self.model_matrix.load_identity()
                 self.model_matrix.push_matrix()
                 self.model_matrix.add_translation(bul.x,bul.y-0.15,bul.z)
                 self.model_matrix.add_scale(0.02,0.02,0.02)
                 self.shader.set_model_matrix(self.model_matrix.matrix)
-                self.shader.set_solid_color(0,0,1)
+                self.shader.set_material_diffuse(0,0,1)
                 bul.shape.draw(self.shader)
                 self.model_matrix.pop_matrix()
                 
@@ -612,57 +536,42 @@ class GraphicsProgram3D:
 
             # ================================= player 2 =============================================== #
             # head
-            self.model_matrix.load_identity()
             self.model_matrix.push_matrix()
             self.model_matrix.add_translation(self.player2_x,0,self.player2_z)
             self.model_matrix.add_scale(0.2,0.2,0.2)
             self.model_matrix.add_rotate_y(self.player2_angle)
             self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(1,0,0)
+            self.shader.set_material_diffuse(1,0,0)
             self.player.draw(self.shader)
             self.model_matrix.pop_matrix()
 
             #neck
-            self.model_matrix.load_identity()
             self.model_matrix.push_matrix()
             self.model_matrix.add_translation(self.player2_x,-0.2,self.player2_z)
             self.model_matrix.add_scale(0.15,0.4,0.15)
             self.model_matrix.add_rotate_y(self.player2_angle)
             self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(1,0,1)
+            self.shader.set_material_diffuse(1,0,1)
             self.player.draw(self.shader)
             self.model_matrix.pop_matrix()
 
             # body
-            self.model_matrix.load_identity()
             self.model_matrix.push_matrix()
             self.model_matrix.add_translation(self.player2_x,-.5,self.player2_z)
             self.model_matrix.add_scale(0.2,-0.5,0.2)
             self.model_matrix.add_rotate_y(self.player2_angle)
             self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(1,0,0)
+            self.shader.set_material_diffuse(1,0,0)
             self.player.draw(self.shader)
             self.model_matrix.pop_matrix()
-
-            # gun shaft
-            #self.model_matrix.load_identity()
-            #self.model_matrix.push_matrix()
-            #self.model_matrix.add_translation(self.player2_gun_rotation_x,-.45,self.player2_gun_rotation_z)
-            #self.model_matrix.add_scale(0.05,-0.1,0.05)
-            #self.model_matrix.add_rotate_y(self.player2_angle)
-            #self.shader.set_model_matrix(self.model_matrix.matrix)
-            #self.shader.set_solid_color(0,0,0)
-            #self.player.draw(self.shader)
-            #self.model_matrix.pop_matrix()
             
             # gun barrel
-            self.model_matrix.load_identity()
             self.model_matrix.push_matrix()
             self.model_matrix.add_translation(self.player2_barrel_rotation_x,-.4,self.player2_barrel_rotation_z)
             self.model_matrix.add_scale(0.05,-0.05,0.05)
             self.model_matrix.add_rotate_y(self.player2_angle)
             self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_solid_color(0,0,0)
+            self.shader.set_material_diffuse(0,0,0)
             self.player.draw(self.shader)
             self.model_matrix.pop_matrix()
 
@@ -676,7 +585,7 @@ class GraphicsProgram3D:
         tmp = 0
         if self.door:
             tmp = 1
-        data = str(self.net.id) + ":" + str(self.view_matrix.eye.x) + "," + str(self.view_matrix.eye.z) + "," + str(self.player1_angle) + "," + str(self.shot)+ "," + str(tmp)
+        data = str(self.net.id) + ":" + str(self.view_matrix.eye.x) + "," + str(self.view_matrix.eye.z) + "," + str(self.player1_angle) + "," + str(self.shot)+ "," + str(tmp)+ "," + str(self.jump)
         reply = self.net.send(data)
         return reply
 
@@ -685,11 +594,9 @@ class GraphicsProgram3D:
         try:
             d = data.split(":")[1].split(",")
             # print(data.split(":")[0])
-            return float(d[0]), float(d[1]), float(d[2]), float(d[3]), float(d[4])
+            return float(d[0]), float(d[1]), float(d[2]), float(d[3]), float(d[4]), float(d[5])
         except:
-            return 0,0,0,0,0
-
-
+            return 0,0,0,0,0,0
 
     def program_loop(self):
         exiting = False
@@ -733,6 +640,12 @@ class GraphicsProgram3D:
                     if event.key == K_e:
                         self.E_key_down = True
 
+                    if event.key == K_LCTRL:
+                        self.L_ctrl_down = True
+
+                    if event.key == K_SPACE:
+                        self.space_down = True
+
                 elif event.type == pygame.KEYUP:
                     # pitch
                     if event.key == K_UP:
@@ -762,9 +675,13 @@ class GraphicsProgram3D:
                     # sprint
                     if event.key == K_LSHIFT:
                         self.L_shift_down = False
+                    if event.key == K_LCTRL:
+                        self.L_ctrl_down = False
+                    if event.key == K_SPACE:
+                        self.space_down = False
             
             # Send Network Stuff
-            self.player2_x, self.player2_z, self.player2_angle, self.player2_shot, self.door = self.parse_data(self.send_data()) # --- uncomment this
+            self.player2_x, self.player2_z, self.player2_angle, self.player2_shot, self.door, self.p2jump = self.parse_data(self.send_data()) # --- uncomment this
             
             self.update()
             self.display()
@@ -776,7 +693,8 @@ class GraphicsProgram3D:
         self.program_loop()
 
 if __name__ == "__main__":
-    inn = input("type 'y' for hosting or 'n'")
+    #inn = input("type 'y' for hosting or 'n'")
+    inn = "y"
     hoster = False
     if inn == 'y':
         hoster = True
