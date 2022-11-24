@@ -161,6 +161,7 @@ class GraphicsProgram3D:
 
     def respawn(self):
         self.p2_score += 1
+        print("our score: "+ str(self.score)+", their score: "+ str(self.p2_score))
         self.player1_alive = True
         if self.net.id == "0":
             self.view_matrix.eye.x = 14
@@ -537,7 +538,7 @@ class GraphicsProgram3D:
             self.model_matrix.add_scale(0.2,0.2,0.2)
             self.model_matrix.add_rotate_y(self.player2_angle)
             self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_material_diffuse(1,0,0)
+            self.shader.set_material_diffuse(0,0,1)
             self.player.draw(self.shader)
             self.model_matrix.pop_matrix()
 
@@ -547,7 +548,7 @@ class GraphicsProgram3D:
             self.model_matrix.add_scale(0.15,0.4,0.15)
             self.model_matrix.add_rotate_y(self.player2_angle)
             self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_material_diffuse(1,0,1)
+            self.shader.set_material_diffuse(0,0,1)
             self.player.draw(self.shader)
             self.model_matrix.pop_matrix()
 
@@ -557,7 +558,7 @@ class GraphicsProgram3D:
             self.model_matrix.add_scale(0.2,-0.5,0.2)
             self.model_matrix.add_rotate_y(self.player2_angle)
             self.shader.set_model_matrix(self.model_matrix.matrix)
-            self.shader.set_material_diffuse(1,0,0)
+            self.shader.set_material_diffuse(0,0,1)
             self.player.draw(self.shader)
             self.model_matrix.pop_matrix()
             
