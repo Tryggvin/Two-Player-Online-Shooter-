@@ -106,12 +106,11 @@ class GraphicsProgram3D:
         self.E_key_down = False
         self.L_ctrl_down = False
         self.space_down = False
-        self.jump = 0
-        self.p2jump = 0
+        self.score = 0
+        self.p2_score = 0
 
         
-        self.texture_id01 = self.load_texture(sys.path[0] + "/textures/test.png")
-        self.texture_id02 = self.load_texture(sys.path[0] + "/textures/wall.jpg")
+        
 
         
 
@@ -141,6 +140,8 @@ class GraphicsProgram3D:
         
         ]
         self.respawn()
+        self.texture_id01 = self.load_texture(sys.path[0] + "/textures/test.png")
+        self.texture_id02 = self.load_texture(sys.path[0] + "/textures/wall.jpg")
 
     def load_texture(self, path_string):
         surface = pygame.image.load(path_string)
@@ -149,8 +150,12 @@ class GraphicsProgram3D:
         height = surface.get_height()
         tex_id = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, tex_id)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        #glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT)
+        #glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT)
+        #glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        #glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_string)
         return tex_id
 
@@ -213,11 +218,13 @@ class GraphicsProgram3D:
                 self.player1_alive = False
             
 
-    def update(self):
+    def update(self, hit):
         delta_time = self.clock.tick() / 1000.0
         self.angle += pi * delta_time
         # if angle > 2 * pi:
         #     angle -= (2 * pi
+        if hit == 1:
+            print("our score: "+self.score+", their score: "+self.p2_score)
 
         if not self.player1_alive:
             self.respawn()
@@ -265,8 +272,7 @@ class GraphicsProgram3D:
             self.in_button_area_1 = True
         else:
             self.in_button_area_1 = False
-            # print("bool: ",self.door)
-            # print("z: ", self.door_z)
+
 
         if (self.view_matrix.eye.z <= 0.5) and (self.view_matrix.eye.z >= -0.5) and (self.view_matrix.eye.x >= -5.5) and (self.view_matrix.eye.x <= -4.5):
             self.in_button_area_2 = True
@@ -275,36 +281,24 @@ class GraphicsProgram3D:
 
             
         if self.E_key_down and (self.in_button_area_1 or self.in_button_area_2): 
-            print(self.door_z)
-            print(self.door)
+
             if self.in_button_area_1:
                 self.button_y_1 = -0.06
-                print("button 1")
+
                 
             elif self.in_button_area_2:
                 self.button_y_2 = -0.06
-                print("button 2")
+
 
             if self.door == True and self.door_z >= 1.5:
                 self.door = False
-                print("close")
+
             elif self.door == False and self.door_z <= 1:
                 self.door = True
              
         else:
             self.button_y_1 = -0.05
             self.button_y_2 = -0.05
-        
-        # if self.E_key_down and (self.in_button_area_1 or self.in_button_area_2) and self.door == True and self.door_z >= 1.5:
-        #     if self.in_button_area_1:
-        #         self.button_y_1 = -0.06
-        #     if self.in_button_area_2:
-        #         self.button_y_2 = -0.06
-        #     self.door = False
-        #     print("close")
-        # else:
-        #     self.button_y_1 = -0.05
-        #     self.button_y_2 = -0.05
         
 
 
@@ -395,7 +389,7 @@ class GraphicsProgram3D:
             self.shader.set_light_specular(1.0,1.0,1.0)
 
             self.shader.set_material_specular(1.0,1.0,1.0)
-            self.shader.set_material_shine(1000)
+            self.shader.set_material_shine(1)
 
             self.model_matrix.load_identity()
 
@@ -406,30 +400,30 @@ class GraphicsProgram3D:
             
 
             # skybox 
-            
-            #self.model_matrix.push_matrix()
-            #self.model_matrix.add_translation(0,0,0)
-            #self.model_matrix.add_scale(35,20,25)
-            #self.shader.set_model_matrix(self.model_matrix.matrix)
-            #self.shader.set_material_diffuse(0.5294,0.8078,0.9216)
-            #self.player.draw(self.shader)
-            #self.model_matrix.pop_matrix()
+            glBindTexture(GL_TEXTURE_2D, self.texture_id01)
+            self.model_matrix.push_matrix()
+            self.model_matrix.add_translation(0,0,0)
+            self.model_matrix.add_scale(35,20,25)
+            self.shader.set_model_matrix(self.model_matrix.matrix)
+            self.shader.set_material_diffuse(0.5294,0.8078,0.9216)
+            self.player.draw(self.shader)
+            self.model_matrix.pop_matrix()
 
             glBindTexture(GL_TEXTURE_2D, self.texture_id01)
             self.shader.set_material_diffuse(1,1,1)
             self.model_matrix.push_matrix()
             self.model_matrix.add_translation(14,0,-5)
-            self.model_matrix.add_scale(1,1,1)
+            self.model_matrix.add_scale(2,2,2)
             self.shader.set_model_matrix(self.model_matrix.matrix)
             
-            self.player.draw(self.shader)
+            self.cube.draw(self.shader)
             self.model_matrix.pop_matrix()
 
             # collision box test
 
             for obj in self.collision_obj:
                 #glBindTexture(GL_TEXTURE_2D, self.texture_id01)
-                #self.shader.set_diffuse_texture(self.texture_id02)
+                
                 self.shader.set_material_diffuse(1.0,0.0,0.0)
                 self.model_matrix.push_matrix()
                 # tmp = collision_object(1)
@@ -440,6 +434,7 @@ class GraphicsProgram3D:
                 
                 #self.shader.set_material_diffuse(1,0,1)
                 self.player.draw(self.shader)
+                #self.shader.set_diffuse_texture(self.texture_id01)
                 self.model_matrix.pop_matrix()
 
 
@@ -585,7 +580,9 @@ class GraphicsProgram3D:
         tmp = 0
         if self.door:
             tmp = 1
-        data = str(self.net.id) + ":" + str(self.view_matrix.eye.x) + "," + str(self.view_matrix.eye.z) + "," + str(self.player1_angle) + "," + str(self.shot)+ "," + str(tmp)+ "," + str(self.jump)
+        if not self.player1_alive:
+            tmp_score = 1
+        data = str(self.net.id) + ":" + str(self.view_matrix.eye.x) + "," + str(self.view_matrix.eye.z) + "," + str(self.player1_angle) + "," + str(self.shot)+ "," + str(tmp)+ "," + str(tmp_score)
         reply = self.net.send(data)
         return reply
 
@@ -593,7 +590,6 @@ class GraphicsProgram3D:
     def parse_data(data):
         try:
             d = data.split(":")[1].split(",")
-            # print(data.split(":")[0])
             return float(d[0]), float(d[1]), float(d[2]), float(d[3]), float(d[4]), float(d[5])
         except:
             return 0,0,0,0,0,0
@@ -681,9 +677,9 @@ class GraphicsProgram3D:
                         self.space_down = False
             
             # Send Network Stuff
-            self.player2_x, self.player2_z, self.player2_angle, self.player2_shot, self.door, self.p2jump = self.parse_data(self.send_data()) # --- uncomment this
-            
-            self.update()
+            self.player2_x, self.player2_z, self.player2_angle, self.player2_shot, self.door, tmp = self.parse_data(self.send_data()) # --- uncomment this
+            self.p2_score += tmp
+            self.update(tmp)
             self.display()
 
         #OUT OF GAME LOOP
@@ -693,8 +689,7 @@ class GraphicsProgram3D:
         self.program_loop()
 
 if __name__ == "__main__":
-    #inn = input("type 'y' for hosting or 'n'")
-    inn = "y"
+    inn = input("type 'y' for hosting or 'n'")
     hoster = False
     if inn == 'y':
         hoster = True

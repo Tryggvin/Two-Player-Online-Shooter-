@@ -127,7 +127,8 @@ class Shader3D:
         glUniform1f(self.matshininess, value)
     
     def set_diffuse_texture(self, tex): 
-        glUniform1f(self.diffuseTextureLoc, tex)
+        glUniform1i(self.diffuseTextureLoc, tex)
+        #glUniform1i(1, tex)
 
     def set_att_uv(self, vertex_array):
         glVertexAttribPointer(self.uvLoc, 2, GL_FLOAT, False,0, vertex_array)

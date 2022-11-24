@@ -5,9 +5,7 @@ class Network:
 
     def __init__(self, hoster):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self.host = "130.208.240.12"
         self.host = "127.0.0.1"
-        # self.host = "localhost"
         self.hoster = hoster
         self.port = 4050
         self.addr = (self.host, self.port)
@@ -15,10 +13,7 @@ class Network:
 
     def connect(self):
         if not self.hoster:
-            #self.host = input("what ip you want to connect? ")
-            #self.port = int(input("what Port? "))
             self.host = "130.208.243.61"
-            # self.host = "127.0.0.1"
             self.port = 4050
             self.addr = (self.host, self.port)
 
