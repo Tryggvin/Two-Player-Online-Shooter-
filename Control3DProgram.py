@@ -225,7 +225,7 @@ class GraphicsProgram3D:
         # if angle > 2 * pi:
         #     angle -= (2 * pi
         if hit == 1:
-            print("our score: "+self.score+", their score: "+self.p2_score)
+            print("our score: "+ str(self.score)+", their score: "+ str(self.p2_score))
 
         if not self.player1_alive:
             self.respawn()
