@@ -160,6 +160,7 @@ class GraphicsProgram3D:
         return tex_id
 
     def respawn(self):
+        self.p2_score += 1
         self.player1_alive = True
         if self.net.id == "0":
             self.view_matrix.eye.x = 14
@@ -389,7 +390,7 @@ class GraphicsProgram3D:
             self.shader.set_light_specular(1.0,1.0,1.0)
 
             self.shader.set_material_specular(1.0,1.0,1.0)
-            self.shader.set_material_shine(1)
+            self.shader.set_material_shine(25)
 
             self.model_matrix.load_identity()
 
@@ -578,6 +579,7 @@ class GraphicsProgram3D:
         :return: reply
         """
         tmp = 0
+        tmp_score = 0
         if self.door:
             tmp = 1
         if not self.player1_alive:
@@ -678,7 +680,7 @@ class GraphicsProgram3D:
             
             # Send Network Stuff
             self.player2_x, self.player2_z, self.player2_angle, self.player2_shot, self.door, tmp = self.parse_data(self.send_data()) # --- uncomment this
-            self.p2_score += tmp
+            self.score += tmp
             self.update(tmp)
             self.display()
 
