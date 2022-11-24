@@ -347,6 +347,7 @@ class GraphicsProgram3D:
     
         if self.player2_shot == 1:
             print("the other player shot a bullet")
+            self.player2_bullet.alive = True
             self.player2_bullet.set(self.player2_x,0,self.player2_z,self.player2_angle+1.6)
         if self.player2_bullet.alive:
             self.player2_bullet.update(delta_time)
@@ -357,7 +358,7 @@ class GraphicsProgram3D:
             self.check_p1_bullet_collision(item, self.player1_bullet)
             self.check_p1_bullet_collision(item, self.player2_bullet)
         self.check_player_bullet_collision(collision_object(self.view_matrix.eye.x,self.view_matrix.eye.y,self.view_matrix.eye.z,0.2,0.2,0.2), self.player2_bullet)
-        self.check_collision(self.player2_bullet.collision)
+        #self.check_collision(self.player2_bullet.collision)
         
         
         # crosshair
