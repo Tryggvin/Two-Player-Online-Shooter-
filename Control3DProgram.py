@@ -108,6 +108,8 @@ class GraphicsProgram3D:
         self.G_key_down = False
         self.E_key_down = False
 
+        
+
         self.button_y_1 = -0.05
 
         self.button_y_2 = -0.05
@@ -141,9 +143,11 @@ class GraphicsProgram3D:
        collision_object(5,-0.3,0,0.1,0.1,0.5), collision_object(-5,-0.3,0,0.1,0.1,0.5)
         
         ]
+        self.respawn()
 
     def respawn(self):
-        if self.net.id == 1:
+        self.player1_alive = True
+        if self.net.id == 0:
             self.view_matrix.eye.x = 14
             self.view_matrix.eye.z = -9
         else:
@@ -186,21 +190,21 @@ class GraphicsProgram3D:
             if (item.z2-0.1 < bul.z):
                 bul.z = item.z2
                 bul.alive = False
-    def check_p2_bullet_collision(self, item: collision_object):
+    def check_player_bullet_collision(self, item: collision_object, bul: bullet):
         # collision box test
-        if (item.z1+0.01 > self.player1_bullet.z > item.z2)  and (item.x1 > self.player1_bullet.x):
-            if (item.x1-0.01 < self.player1_bullet.x):
-                self.player1_bullet.x = item.x1-0.01
-        if (item.z1+0.01 > self.player1_bullet.z > item.z2)  and (item.x2 < self.player1_bullet.x):
-            if (item.x2+0.01 > self.player1_bullet.x):
-                self.player1_bullet.x = item.x2+0.01
+        if (item.z1+0.1 > bul.z > item.z2)  and (item.x1 > bul.x):
+            if (item.x1-0.1 < bul.x):
+                self.player1_alive = False
+        if (item.z1+0.1 > bul.z > item.z2)  and (item.x2 < bul.x):
+            if (item.x2+0.1 > bul.x):
+                self.player1_alive = False
 
-        if (item.z1 < self.player1_bullet.z)  and (item.x1-0.01 < self.player1_bullet.x < item.x2+0.01):
-            if (item.z1+0.01 > self.player1_bullet.z):
-                self.player1_bullet.z = item.z1+0.01
-        if (item.z2 > self.player1_bullet.z)  and (item.x1-0.1 < self.player1_bullet.x < item.x2+0.01):
-            if (item.z2-0.01 < self.player1_bullet.z):
-                self.player1_bullet.z = item.z2-0.01
+        if (item.z1 < bul.z)  and (item.x1-0.1 < bul.x < item.x2+0.1):
+            if (item.z1+0.1 > bul.z):
+                self.player1_alive = False
+        if (item.z2 > bul.z)  and (item.x1-0.1 < bul.x < item.x2+0.1):
+            if (item.z2-0.1 < bul.z):
+                self.player1_alive = False
             
 
     def update(self):
@@ -209,7 +213,16 @@ class GraphicsProgram3D:
         # if angle > 2 * pi:
         #     angle -= (2 * pi
 
-        self.player2_x
+        if not self.player1_alive:
+            self.respawn()
+            # #respawn
+            # self.player1_alive = True
+            # if self.net.id == 0:
+            #     self.view_matrix.eye.x = 14
+            #     self.view_matrix.eye.z = -9
+            # else:
+            #     self.view_matrix.eye.x = -14
+                # self.view_matrix.eye.z = 9
 
         if self.UP_key_down:
             self.white_background = True
@@ -342,7 +355,8 @@ class GraphicsProgram3D:
         for item in self.collision_obj:
             self.check_collision(item)
             self.check_p1_bullet_collision(item, self.player1_bullet)
-            self.check_p2_bullet_collision(item)
+            self.check_p1_bullet_collision(item, self.player2_bullet)
+        self.check_player_bullet_collision(collision_object(self.view_matrix.eye.x,self.view_matrix.eye.y,self.view_matrix.eye.z,0.2,0.2,0.2), self.player2_bullet)
         self.check_collision(self.player2_bullet.collision)
         
         
@@ -602,6 +616,17 @@ class GraphicsProgram3D:
             self.player.draw(self.shader)
             self.model_matrix.pop_matrix()
 
+            #neck
+            self.model_matrix.load_identity()
+            self.model_matrix.push_matrix()
+            self.model_matrix.add_translation(self.player2_x,0.1,self.player2_z)
+            self.model_matrix.add_scale(0.05,0.05,0.05)
+            self.model_matrix.add_rotate_y(self.player2_angle)
+            self.shader.set_model_matrix(self.model_matrix.matrix)
+            self.shader.set_solid_color(0,0,1)
+            self.player.draw(self.shader)
+            self.model_matrix.pop_matrix()
+
             # body
             self.model_matrix.load_identity()
             self.model_matrix.push_matrix()
@@ -642,7 +667,10 @@ class GraphicsProgram3D:
         Send position to server
         :return: reply
         """
-        data = str(self.net.id) + ":" + str(self.view_matrix.eye.x) + "," + str(self.view_matrix.eye.z) + "," + str(self.player1_angle) + "," + str(self.shot)
+        tmp = 0
+        if self.door:
+            tmp = 1
+        data = str(self.net.id) + ":" + str(self.view_matrix.eye.x) + "," + str(self.view_matrix.eye.z) + "," + str(self.player1_angle) + "," + str(self.shot)+ "," + str(tmp)
         reply = self.net.send(data)
         return reply
 
@@ -651,9 +679,9 @@ class GraphicsProgram3D:
         try:
             d = data.split(":")[1].split(",")
             # print(data.split(":")[0])
-            return float(d[0]), float(d[1]), float(d[2]), float(d[3])
+            return float(d[0]), float(d[1]), float(d[2]), float(d[3]), float(d[4])
         except:
-            return 0,0,0,0
+            return 0,0,0,0,0
 
 
 
@@ -730,7 +758,7 @@ class GraphicsProgram3D:
                         self.L_shift_down = False
             
             # Send Network Stuff
-            self.player2_x, self.player2_z, self.player2_angle, self.player2_shot= self.parse_data(self.send_data()) # --- uncomment this
+            self.player2_x, self.player2_z, self.player2_angle, self.player2_shot, self.door = self.parse_data(self.send_data()) # --- uncomment this
             
             self.update()
             self.display()
