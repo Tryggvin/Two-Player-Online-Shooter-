@@ -654,7 +654,10 @@ class GraphicsProgram3D:
         Send position to server
         :return: reply
         """
-        data = str(self.net.id) + ":" + str(self.view_matrix.eye.x) + "," + str(self.view_matrix.eye.z) + "," + str(self.player1_angle) + "," + str(self.shot)
+        tmp = 0
+        if self.door:
+            tmp = 1
+        data = str(self.net.id) + ":" + str(self.view_matrix.eye.x) + "," + str(self.view_matrix.eye.z) + "," + str(self.player1_angle) + "," + str(self.shot)+ "," + str(tmp)
         reply = self.net.send(data)
         return reply
 
@@ -663,9 +666,9 @@ class GraphicsProgram3D:
         try:
             d = data.split(":")[1].split(",")
             # print(data.split(":")[0])
-            return float(d[0]), float(d[1]), float(d[2]), float(d[3])
+            return float(d[0]), float(d[1]), float(d[2]), float(d[3]), float(d[4])
         except:
-            return 0,0,0,0
+            return 0,0,0,0,0
 
 
 
@@ -742,7 +745,7 @@ class GraphicsProgram3D:
                         self.L_shift_down = False
             
             # Send Network Stuff
-            self.player2_x, self.player2_z, self.player2_angle, self.player2_shot= self.parse_data(self.send_data()) # --- uncomment this
+            self.player2_x, self.player2_z, self.player2_angle, self.player2_shot, self.door = self.parse_data(self.send_data()) # --- uncomment this
             
             self.update()
             self.display()
