@@ -160,21 +160,40 @@ class GraphicsProgram3D:
             if (item.z2-0.1 < self.view_matrix.eye.z):
                 self.view_matrix.eye.z = item.z2-0.1
 
-    def check_bullet_collision(self, item: collision_object, bul: bullet ):
+    def check_p1_bullet_collision(self, item: collision_object, bul: bullet):
         # collision box test
-        if (item.z1+0.01 > bul.z > item.z2)  and (item.x1 > bul.x):
-            if (item.x1-0.01 < bul.x):
-                bul.x = item.x1-0.01
-        if (item.z1+0.01 > bul.z > item.z2)  and (item.x2 < bul.x):
-            if (item.x2+0.01 > bul.x):
-                bul.x = item.x2+0.01
+        if (item.z1+0.1 > bul.z > item.z2)  and (item.x1 > bul.x):
+            if (item.x1-0.1 < bul.x):
+                bul.x = item.x1
+                bul.alive = False
+        if (item.z1+0.1 > bul.z > item.z2)  and (item.x2 < bul.x):
+            if (item.x2+0.1 > bul.x):
+                bul.x = item.x2
+                bul.alive = False
 
-        if (item.z1 < bul.z)  and (item.x1-0.01 < bul.x < item.x2+0.01):
-            if (item.z1+0.01 > bul.z):
-                bul.z = item.z1+0.01
-        if (item.z2 > bul.z)  and (item.x1-0.1 < bul.x < item.x2+0.01):
-            if (item.z2-0.01 < bul.eye.z):
-                bul.z = item.z2-0.01
+        if (item.z1 < bul.z)  and (item.x1-0.1 < bul.x < item.x2+0.1):
+            if (item.z1+0.1 > bul.z):
+                bul.alive = False
+                bul.z = item.z1
+        if (item.z2 > bul.z)  and (item.x1-0.1 < bul.x < item.x2+0.1):
+            if (item.z2-0.1 < bul.z):
+                bul.z = item.z2
+                bul.alive = False
+    def check_p2_bullet_collision(self, item: collision_object):
+        # collision box test
+        if (item.z1+0.01 > self.player1_bullet.z > item.z2)  and (item.x1 > self.player1_bullet.x):
+            if (item.x1-0.01 < self.player1_bullet.x):
+                self.player1_bullet.x = item.x1-0.01
+        if (item.z1+0.01 > self.player1_bullet.z > item.z2)  and (item.x2 < self.player1_bullet.x):
+            if (item.x2+0.01 > self.player1_bullet.x):
+                self.player1_bullet.x = item.x2+0.01
+
+        if (item.z1 < self.player1_bullet.z)  and (item.x1-0.01 < self.player1_bullet.x < item.x2+0.01):
+            if (item.z1+0.01 > self.player1_bullet.z):
+                self.player1_bullet.z = item.z1+0.01
+        if (item.z2 > self.player1_bullet.z)  and (item.x1-0.1 < self.player1_bullet.x < item.x2+0.01):
+            if (item.z2-0.01 < self.player1_bullet.z):
+                self.player1_bullet.z = item.z2-0.01
             
 
     def update(self):
@@ -299,6 +318,7 @@ class GraphicsProgram3D:
         # shooting 
         if self.shot == 1:
             self.shot = 0
+            self.player1_bullet.alive = True
             print("I'm shooting")
             self.player1_bullet.set(self.view_matrix.eye.x,0,self.view_matrix.eye.z,self.player1_angle+1.6)
 
@@ -314,8 +334,8 @@ class GraphicsProgram3D:
         
         for item in self.collision_obj:
             self.check_collision(item)
-            self.check_bullet_collision(item, self.player1_bullet)
-            self.check_bullet_collision(item, self.player2_bullet)
+            self.check_p1_bullet_collision(item, self.player1_bullet)
+            self.check_p2_bullet_collision(item)
         self.check_collision(self.player2_bullet.collision)
         
         

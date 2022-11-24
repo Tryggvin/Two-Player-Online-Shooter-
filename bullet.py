@@ -10,11 +10,11 @@ class bullet():
         self.angle = angle
         self.alive = True
         self.shape = Sphere()
-        self.collision = collision_object(x, y, z, 0.2, 0.2, 0.2)
+        self.collision = collision_object(x, y, z, 1, 1, 1)
     
     def update(self, delta_time):
-        self.x += 12*cos(self.angle)*delta_time
-        self.z += -12*sin(self.angle)*delta_time
+        self.x += 4*cos(self.angle)*delta_time
+        self.z += -4*sin(self.angle)*delta_time
 
     def set(self, x, y, z, angle):
         self.angle = angle
