@@ -23,7 +23,7 @@ class GraphicsProgram3D:
     def __init__(self, hoster):
 
         pygame.init() 
-        pygame.display.set_mode((800,600), pygame.OPENGL|pygame.DOUBLEBUF)
+        pygame.display.set_mode((1280,720), pygame.OPENGL|pygame.DOUBLEBUF)
 
         self.shader = Shader3D()
         self.shader.use()
@@ -46,7 +46,7 @@ class GraphicsProgram3D:
         #projection matrix
         self.projection_matrix = ProjectionMatrix()
         # self.projection_matrix.set_orthographic(-2, 2, -2, 2, 0.5, 10)
-        self.projection_matrix.set_perspective(pi / 2, 800 / 600, 0.009, 50)
+        self.projection_matrix.set_perspective(pi / 2, 1280 / 720, 0.009, 50)
         self.shader.set_projection_matrix(self.projection_matrix.get_matrix())
 
         self.cube = Cube()
@@ -393,7 +393,7 @@ class GraphicsProgram3D:
 
         for count in range(0,2):
             if count == 0:
-                glViewport(0, 0, 800, 600)
+                glViewport(0, 0, 1280, 720)
                 self.shader.set_view_matrix(self.view_matrix.get_matrix())
             else:
                 glViewport(320,480,160,120)
